@@ -5,85 +5,215 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <link rel="stylesheet" href="/niivue.css" />
+  <link rel="stylesheet" href="/brainchop.css" />
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" integrity="sha512-Kc323vGBEqzTmouAECnVceyQqyqdsSiqLQISBL29aUW4U/M7pSPA/gEUZQqv1cwx4OnYxTxve5UMg5GT6L4JJg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
-  <title>AI powered brain segmentation</title>
+  <title>BrainChop - AI Powered Brain Segmentation</title>
 </head>
 
 <body>
-  <header>
-    <label for="clipCheck">Clip Plane</label>
-    <input type="checkbox" id="clipCheck" unchecked />
-    <label for="opacitySlider0">Background Opacity</label>
-    <input type="range" min="0" max="255" value="255" class="slider" id="opacitySlider0" />
-    &nbsp;
-    <label for="opacitySlider1">Overlay Opacity</label>
-    <input type="range" min="0" max="255" value="128" class="slider" id="opacitySlider1" />
-    &nbsp;
-    <label for="modelSelect">Segmentation Model</label>
-    <select id="modelSelect">
-    </select>
-    &nbsp;
-    <button id="saveImgBtn">Save Segmentation</button>
-    &nbsp;
-    <button id="saveSceneBtn">Save Scene</button>
-    &nbsp;
-    <label for="workerCheck">Use Webworker</label>
-    <input type="checkbox" title="webworkers are faster but not supported by all browsers" id="workerCheck" checked />
-    &nbsp;
-    <label for="penDrop">Draw</label>
-    <select id="penDrop">
-      <option value="-1">Off</option>
-      <option value="2">On</option>
-      <option value="10">Filled</option>
-      <option value="0">Erase</option>
-    </select>
-    <select id="drawDrop">
-      <option value="0">Undo</option>
-      <option value="1">Append</option>
-      <option value="2">Remove</option>
-    </select>
-    &nbsp;
-    <label for="dragMode">Drag Mode</label>
-    <select id="dragMode">
-      <option>none</option>
-      <option>contrast</option>
-      <option>measurement</option>
-      <option selected>pan/zoom</option>
-      <option>slicer3D</option>
-    </select>
-    &nbsp;
-    <button id="diagnosticsBtn">Diagnostics</button>
-    &nbsp;
-    <button id="aboutBtn">About</button>
-  </header>
-  <main id="canvas-container">
-    <canvas id="gl1"></canvas>
-  </main>
-  <footer>
-    <div class="footer">
-      <table class="footer">
-        <tr>
-          <th id="location">Drag and Drop any NIfTI image</th>
-          <th><progress id="modelProgress" value="0" max="100"> 32% </progress></th>
-          <th>
-            <!-- important to use class footer here -->
-            <div class="footer" id="memstatus" style="color: green">Memory OK</div>
-          </th>
-          <th>
-            <a href="https://github.com/neuroneural/brainchop" target="_blank" style="text-decoration:none">
-              <div class="github-star">
-                <div class="star-button">
-                  <i class="fa-brands fa-github" style="color: #000000;"></i>
-                  <span>Star</span>
-                </div>
-                <div id="star-count">0</div>
-              </div>
-            </a>
-          </th>
-        </tr>
-      </table>
+  <div class="app-container">
+    <!-- Top Navigation Bar -->
+    <header class="top-nav">
+      <div class="app-logo">
+        <i class="fas fa-brain"></i>
+        <span>BrainChop</span>
+      </div>
+      
+      <div class="top-actions">
+        <button id="aboutBtn">
+          <i class="fas fa-info-circle"></i>
+          <span>About</span>
+        </button>
+        <button id="diagnosticsBtn">
+          <i class="fas fa-stethoscope"></i>
+          <span>Diagnostics</span>
+        </button>
+        <a href="https://github.com/neuroneural/brainchop" target="_blank" class="github-button">
+          <div class="github-star">
+            <div class="star-button">
+              <i class="fa-brands fa-github"></i>
+              <span>Star</span>
+            </div>
+            <div id="star-count">0</div>
+          </div>
+        </a>
+      </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <!-- Left Sidebar with Controls -->
+      <aside class="sidebar">
+        <div class="panel">
+          <div class="panel-header">
+            <i class="fas fa-sliders-h"></i>
+            <span>Model Selection</span>
+          </div>
+          <div class="panel-body">
+            <div class="control-group">
+              <label for="modelSelect">Segmentation Model</label>
+              <select id="modelSelect" class="full-width"></select>
+            </div>
+            <div class="control-group checkbox-group">
+              <input type="checkbox" id="workerCheck" checked />
+              <label for="workerCheck">Use Webworker (faster in Chrome)</label>
+            </div>
+            <div class="progress-container">
+              <label>Model Progress</label>
+              <progress id="modelProgress" value="0" max="100"></progress>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <i class="fas fa-eye"></i>
+            <span>Visualization</span>
+          </div>
+          <div class="panel-body">
+            <div class="control-group slider-group">
+              <label for="opacitySlider0">Background Opacity</label>
+              <input type="range" min="0" max="255" value="255" class="slider" id="opacitySlider0" />
+            </div>
+            <div class="control-group slider-group">
+              <label for="opacitySlider1">Overlay Opacity</label>
+              <input type="range" min="0" max="255" value="128" class="slider" id="opacitySlider1" />
+            </div>
+            <div class="control-group checkbox-group">
+              <input type="checkbox" id="clipCheck" unchecked />
+              <label for="clipCheck">Clip Plane</label>
+            </div>
+            <div class="control-group">
+              <label for="dragMode">View Mode</label>
+              <select id="dragMode" class="full-width">
+                <option>none</option>
+                <option>contrast</option>
+                <option>measurement</option>
+                <option selected>pan/zoom</option>
+                <option>slicer3D</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <i class="fas fa-pencil-alt"></i>
+            <span>Drawing Tools</span>
+          </div>
+          <div class="panel-body">
+            <div class="control-group">
+              <label for="penDrop">Drawing Mode</label>
+              <select id="penDrop" class="full-width">
+                <option value="-1">Off</option>
+                <option value="2">On</option>
+                <option value="10">Filled</option>
+                <option value="0">Erase</option>
+              </select>
+            </div>
+            <div class="control-group">
+              <label for="drawDrop">Drawing Action</label>
+              <select id="drawDrop" class="full-width">
+                <option value="0">Undo</option>
+                <option value="1">Append</option>
+                <option value="2">Remove</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-header">
+            <i class="fas fa-save"></i>
+            <span>Save Options</span>
+          </div>
+          <div class="panel-body">
+            <div class="control-group button-group">
+              <button id="saveImgBtn" class="full-width">
+                <i class="fas fa-file-export"></i>
+                <span>Save Segmentation</span>
+              </button>
+            </div>
+            <div class="control-group button-group">
+              <button id="saveSceneBtn" class="full-width">
+                <i class="fas fa-film"></i>
+                <span>Save Scene</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <!-- Main Visualization Area -->
+      <main class="visualization-area">
+        <!-- View Windows Container -->
+        <div class="view-windows">
+          <!-- Axial View -->
+          <div class="view-window" id="axial-window">
+            <div class="view-window-header">
+              <i class="fas fa-square"></i>
+              <span>Axial View</span>
+            </div>
+            <div class="view-window-body">
+              <!-- NiiVue will render here -->
+            </div>
+          </div>
+          
+          <!-- Sagittal View -->
+          <div class="view-window" id="sagittal-window">
+            <div class="view-window-header">
+              <i class="fas fa-square"></i>
+              <span>Sagittal View</span>
+            </div>
+            <div class="view-window-body">
+              <!-- NiiVue will render here -->
+            </div>
+          </div>
+          
+          <!-- Coronal View -->
+          <div class="view-window" id="coronal-window">
+            <div class="view-window-header">
+              <i class="fas fa-square"></i>
+              <span>Coronal View</span>
+            </div>
+            <div class="view-window-body">
+              <!-- NiiVue will render here -->
+            </div>
+          </div>
+          
+          <!-- 3D View -->
+          <div class="view-window" id="volume-window">
+            <div class="view-window-header">
+              <i class="fas fa-cube"></i>
+              <span>3D View</span>
+            </div>
+            <div class="view-window-body">
+              <!-- NiiVue will render here -->
+            </div>
+          </div>
+        </div>
+        
+        <!-- The main canvas - hidden but used by NiiVue -->
+        <canvas id="gl1" style="display: none;"></canvas>
+      </main>
     </div>
-  </footer>
+
+    <!-- Footer Status Bar -->
+    <footer class="status-bar">
+      <div class="status-item">
+        <i class="fas fa-file-upload"></i>
+        <span id="location">Drag and Drop any NIfTI image</span>
+      </div>
+      
+      <div class="status-item">
+        <div id="memstatus" class="memory-status">
+          <i class="fas fa-memory"></i>
+          <span>Memory OK</span>
+        </div>
+      </div>
+    </footer>
+  </div>
+
   <script type="module" src="/main.js"></script>
 </body>
 
